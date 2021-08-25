@@ -1,0 +1,9 @@
+bin_PROGRAMS = binrsync
+binrsync_SOURCES = binrsync.c
+
+AM_CFLAGS=
+AM_LDFLAGS=
+
+AM_CFLAGS+=-Wall
+AM_CFLAGS+=-Wextra
+AM_CFLAGS+=-D_FILE_OFFSET_BITS=64
