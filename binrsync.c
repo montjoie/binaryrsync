@@ -43,6 +43,11 @@ int main(const int argc, const char *argv[]) {
 	off64_t dst_size;
 	int foundone;
 
+	if (argc <= 1) {
+		usage(argv);
+		return EXIT_SUCCESS;
+	}
+
 	if (strcmp(argv[argi], "-h") == 0) {
 		usage(argv);
 		return EXIT_SUCCESS;
