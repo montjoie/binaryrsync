@@ -20,5 +20,9 @@ jobs:
         run: ./configure
       - name: build
         run: make
-      - name: run
+      - name: run without argument
         run: ./binrsync
+      - name: ask for help
+        run: ./binrsync -h
+      - name: Run tests
+        run: sh ./test.sh

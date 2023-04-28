@@ -1,5 +1,6 @@
-bin_PROGRAMS = binrsync
+bin_PROGRAMS = binrsync testgen
 binrsync_SOURCES = binrsync.c
+testgen_SOURCES = testgen.c
 
 AM_CFLAGS=
 AM_LDFLAGS=
