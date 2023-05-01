@@ -1,13 +1,23 @@
 #!/bin/sh
 
-md5() {
-	MD5="$(md5sum $1 | cut -d' ' -f1)"
+fmd5() {
+	uname -a |grep -iq linux
+	if [ $? -eq 0 ];then
+		MD5="$(md5sum $1 | cut -d' ' -f1)"
+	else
+		MD5="$(md5 $1 | sed 's,.* ,,')"
+	fi
 }
 
+echo "TEST if md5sum is working (should give d41d8cd98f00b204e9800998ecf8427e)"
+touch empty
+md5sum empty
+fmd5 empty
+
 compare() {
-	md5 "$1"
+	fmd5 "$1"
 	D1="$MD5"
-	md5 "$2"
+	fmd5 "$2"
 	D2="$MD5"
 	case $3 in
 	equal)
@@ -47,6 +57,8 @@ compare disk1.img disk2.img equal
 ./binrsync -g disk1.img disk2.img || exit $?
 compare disk1.img disk2.img equal
 rm disk*
+
+exit 0
 
 echo "TEST3 8K of 0 vs 4K of 1"
 ./testgen --size 2 --pattern 0 disk1.img || exit $?

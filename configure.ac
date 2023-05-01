@@ -18,6 +18,10 @@ AC_CHECK_HEADERS([unistd.h])
 
 AC_CHECK_FUNCS([strerror])
 
+AC_CHECK_FUNCS(lseek64)
+
+AC_CHECK_TYPES([off64_t], [], [], [sys/types.h])
+
 AC_C_INLINE
 
 AC_FUNC_MALLOC

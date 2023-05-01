@@ -7,8 +7,18 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <sys/types.h>
 
 #define BUF_SIZE 4096
+
+/* FreeBSD does not have lseek64 */
+#ifndef HAVE_LSEEK64
+#define lseek64 lseek
+#endif
+
+#ifndef HAVE_OFF64_T
+#define off64_t off_t
+#endif
 
 /* return 0 if same */
 int compare(const char *s, const char *d, unsigned int tocomp) {

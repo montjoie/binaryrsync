@@ -7,14 +7,57 @@ on:  # yamllint disable-line rule:truthy
   pull_request:
 
 jobs:
+  build-bsd:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os:
+          - name: freebsd
+            architecture: x86-64
+            version: '13.2'
+
+          - name: openbsd
+            architecture: x86-64
+            version: '7.3'
+
+          - name: openbsd
+            architecture: arm64
+            version: '7.3'
+
+          - name: netbsd
+            architecture: x86-64
+            version: '9.2'
+    name: build on BSD
+    steps:
+      - uses: actions/checkout@v3
+      - name: test ${{ matrix.os.name }}
+        uses: cross-platform-actions/action@v0.13.0
+        with:
+          operating_system: ${{ matrix.os.name }}
+          architecture: x86-64
+          version: ${{ matrix.os.version }}
+          shell: bash
+          memory: 1G
+          cpu_count: 1
+          run: |
+            uname -a
+            sh .github/workflows/install-deps.sh
+            export AUTOCONF_VERSION=2.71
+            export AUTOMAKE_VERSION=1.16
+            autoreconf --install
+            ./configure
+            make
+            ./binrsync
+            ./binrsync -h
+            sh ./test.sh
   build-ubuntu:
     runs-on: ubuntu-latest
     name: build on ubuntu
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install packages
         run: sudo apt-get -y install autotools-dev build-essential automake
-      - name: autorecon
+      - name: autoreconf
         run: autoreconf --install
       - name: configure
         run: ./configure
@@ -26,3 +69,26 @@ jobs:
         run: ./binrsync -h
       - name: Run tests
         run: sh ./test.sh
+  build-ubuntu32:
+    runs-on: ubuntu-latest
+    name: build on ubuntu32
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install packages
+        run: sudo apt-get -y install debootstrap
+      - name: debootstrap a linux32
+        run: sudo debootstrap --arch i386 bullseye /bullseye32 http://ftp.fr.debian.org/debian/
+      - name: mount procfs in chroot
+        run: sudo mount -t proc none /bullseye32/proc
+      - name: update apt in chroot
+        run: sudo linux32 chroot /bullseye32/ apt-get update
+      - name: install dependencies in chroot
+        run: sudo linux32 chroot /bullseye32/ apt-get -y install autotools-dev build-essential automake
+      - name: build.sh must be executable
+        run: chmod +x build.sh
+      - name: rsync project in chroot
+        run: sudo rsync -avr . /bullseye32/binaryrsync
+      - name: DEBUG
+        run: ls -l /bullseye32/binaryrsync
+      - name: build in chroot
+        run: sudo linux32 chroot /bullseye32/ /binaryrsync/build.sh
