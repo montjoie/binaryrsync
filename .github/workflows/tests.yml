@@ -8,7 +8,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   build-bsd:
-    runs-on: ubuntu-latest
+    runs-on: qemu
     strategy:
       matrix:
         os:
@@ -39,8 +39,10 @@ jobs:
           shell: bash
           memory: 1G
           cpu_count: 1
+          environment_variables: "http_proxy https_proxy"
           run: |
             uname -a
+            export
             sh .github/workflows/install-deps.sh
             export AUTOCONF_VERSION=2.71
             export AUTOMAKE_VERSION=1.16
@@ -51,10 +53,12 @@ jobs:
             ./binrsync -h
             sh ./test.sh
   build-ubuntu:
-    runs-on: ubuntu-latest
+    runs-on: qemu
     name: build on ubuntu
     steps:
       - uses: actions/checkout@v3
+      - name: debug
+        run: pwd && ls -l && ls -l /home/runner/
       - name: Install packages
         run: sudo apt-get -y install autotools-dev build-essential automake
       - name: autoreconf
@@ -70,16 +74,20 @@ jobs:
       - name: Run tests
         run: sh ./test.sh
   build-ubuntu32:
-    runs-on: ubuntu-latest
+    runs-on: qemu
     name: build on ubuntu32
     steps:
       - uses: actions/checkout@v3
+      - name: debug
+        run: export
       - name: Install packages
         run: sudo apt-get -y install debootstrap
       - name: debootstrap a linux32
-        run: sudo debootstrap --arch i386 bullseye /bullseye32 http://ftp.fr.debian.org/debian/
+        run: sudo -E debootstrap --arch i386 bullseye /bullseye32 http://ftp.fr.debian.org/debian/
       - name: mount procfs in chroot
         run: sudo mount -t proc none /bullseye32/proc
+      - name: copy proxy info
+        run: sudo cp /etc/apt/apt.conf /bullseye32/etc/apt/apt.conf
       - name: update apt in chroot
         run: sudo linux32 chroot /bullseye32/ apt-get update
       - name: install dependencies in chroot

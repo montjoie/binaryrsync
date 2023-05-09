@@ -13,7 +13,12 @@ if [ -x /usr/bin/yum ];then
 fi
 
 if [ -x  /usr/sbin/pkg ];then
-	sudo ASSUME_ALWAYS_YES=YES pkg install autotools
+	#find /usr |grep pkg.conf
+	#find /usr |grep pkg.conf | xargs cat
+	echo 'pkg_env : {
+	http_proxy: "http://squid:3128"
+}' | sudo tee -a /usr/local/etc/pkg.conf
+	sudo -E ASSUME_ALWAYS_YES=YES pkg install autotools
 	exit $?
 fi
 
@@ -47,13 +52,13 @@ if [ -x /usr/pkg/bin/pkgin ];then
 	/usr/pkg/bin/pkgin search autotool
 	/usr/pkg/bin/pkgin search coreutils
 
-	sudo /usr/pkg/bin/pkgin -y install autoconf automake
+	sudo -E /usr/pkg/bin/pkgin -y install autoconf automake
 	exit $?
 fi
 
 if [ -x /usr/sbin/pkg_add ];then
 	echo "DEBUG: using pkg_add to install $P_AUTOMAKE $P_AUTOCONF"
-	sudo /usr/sbin/pkg_add $P_AUTOMAKE $P_AUTOCONF || exit $?
+	sudo -E /usr/sbin/pkg_add $P_AUTOMAKE $P_AUTOCONF || exit $?
 
 	find /usr/local/bin/ |grep aclocal
 	exit 0
