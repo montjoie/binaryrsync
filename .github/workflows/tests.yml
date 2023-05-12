@@ -15,18 +15,15 @@ jobs:
           - name: freebsd
             architecture: x86-64
             version: '13.2'
-
-          - name: openbsd
-            architecture: x86-64
-            version: '7.3'
-
-          - name: openbsd
-            architecture: arm64
-            version: '7.3'
-
-          - name: netbsd
-            architecture: x86-64
-            version: '9.2'
+#          - name: openbsd
+#            architecture: x86-64
+#            version: '7.3'
+#          - name: openbsd
+#            architecture: arm64
+#            version: '7.3'
+#          - name: netbsd
+#            architecture: x86-64
+#            version: '9.2'
     name: build on BSD
     steps:
       - uses: actions/checkout@v3
@@ -52,9 +49,12 @@ jobs:
             ./binrsync
             ./binrsync -h
             sh ./test.sh
-  build-ubuntu:
-    runs-on: qemu
-    name: build on ubuntu
+  build-debian:
+    strategy:
+      matrix:
+        os: [ bullseye, bookworm ]
+    runs-on: ${{ matrix.os }}-sudo
+    name: build on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: debug
@@ -73,30 +73,30 @@ jobs:
         run: ./binrsync -h
       - name: Run tests
         run: sh ./test.sh
-  build-ubuntu32:
-    runs-on: qemu
-    name: build on ubuntu32
-    steps:
-      - uses: actions/checkout@v3
-      - name: debug
-        run: export
-      - name: Install packages
-        run: sudo apt-get -y install debootstrap
-      - name: debootstrap a linux32
-        run: sudo -E debootstrap --arch i386 bullseye /bullseye32 http://ftp.fr.debian.org/debian/
-      - name: mount procfs in chroot
-        run: sudo mount -t proc none /bullseye32/proc
-      - name: copy proxy info
-        run: sudo cp /etc/apt/apt.conf /bullseye32/etc/apt/apt.conf
-      - name: update apt in chroot
-        run: sudo linux32 chroot /bullseye32/ apt-get update
-      - name: install dependencies in chroot
-        run: sudo linux32 chroot /bullseye32/ apt-get -y install autotools-dev build-essential automake
-      - name: build.sh must be executable
-        run: chmod +x build.sh
-      - name: rsync project in chroot
-        run: sudo rsync -avr . /bullseye32/binaryrsync
-      - name: DEBUG
-        run: ls -l /bullseye32/binaryrsync
-      - name: build in chroot
-        run: sudo linux32 chroot /bullseye32/ /binaryrsync/build.sh
+#  build-ubuntu32:
+#    runs-on: qemu
+#    name: build on ubuntu32
+#    steps:
+#      - uses: actions/checkout@v3
+#      - name: debug
+#        run: export
+#      - name: Install packages
+#        run: sudo apt-get -y install debootstrap
+#      - name: debootstrap a linux32
+#        run: sudo -E debootstrap --arch i386 bullseye /bullseye32 http://ftp.fr.debian.org/debian/
+#      - name: mount procfs in chroot
+#        run: sudo mount -t proc none /bullseye32/proc
+#      - name: copy proxy info
+#        run: sudo cp /etc/apt/apt.conf /bullseye32/etc/apt/apt.conf
+#      - name: update apt in chroot
+#        run: sudo linux32 chroot /bullseye32/ apt-get update
+#      - name: install dependencies in chroot
+#        run: sudo linux32 chroot /bullseye32/ apt-get -y install autotools-dev build-essential automake
+#      - name: build.sh must be executable
+#        run: chmod +x build.sh
+#      - name: rsync project in chroot
+#        run: sudo rsync -avr . /bullseye32/binaryrsync
+#      - name: DEBUG
+#        run: ls -l /bullseye32/binaryrsync
+#      - name: build in chroot
+#        run: sudo linux32 chroot /bullseye32/ /binaryrsync/build.sh
